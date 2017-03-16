@@ -1,0 +1,4 @@
+sceneSetups:
+- path: Assets/SimpleUnityPhysics/Example/SimplePhysicsDemo.unity
+  isLoaded: 1
+  isActive: 1
