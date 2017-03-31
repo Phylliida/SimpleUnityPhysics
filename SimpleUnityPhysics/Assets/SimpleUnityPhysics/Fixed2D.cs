@@ -7,8 +7,7 @@ namespace SimpleUnityPhysics
         SimpleRigidbody2D myRigidbody;
         Vector2 relativePos;
         public float moveDist = 1f;
-
-        // Use this for initialization
+        
         void Start()
         {
             myRigidbody = GetComponent<SimpleRigidbody2D>();
@@ -19,7 +18,6 @@ namespace SimpleUnityPhysics
         public int iters = 10;
 
 
-        // Update is called once per frame
         void FixedUpdate()
         {
 
@@ -52,10 +50,6 @@ namespace SimpleUnityPhysics
 
                     myRigidbody.FixCollisions();
                     other.FixCollisions();
-
-
-                    //myRigidbody.angularVelocity = angularVelocityScale * Vector3.Cross(-(myRigidbody.position - other.position), other.VectorRejection(new Vector3(0, -other.gravity), -(myRigidbody.position - other.position))).z;
-                    //other.angularVelocity = angularVelocityScale* Vector3.Cross(-(myRigidbody.position - other.position), -other.VectorRejection(new Vector3(0, -myRigidbody.gravity), -(myRigidbody.position - other.position).normalized)).z;
 
 
                     Vector2 avgVelocity = (myRigidbody.velocity + other.velocity) / 2.0f;

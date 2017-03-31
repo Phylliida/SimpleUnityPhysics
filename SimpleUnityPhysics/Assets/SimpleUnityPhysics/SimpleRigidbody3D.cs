@@ -52,8 +52,7 @@ namespace SimpleUnityPhysics
 
 
         public float[] distances;
-
-        // Use this for initialization
+        
         public void Start()
         {
             if (!added) { time.AddMeToTickHandler(this, UpdateMe); added = true; }
@@ -122,8 +121,7 @@ namespace SimpleUnityPhysics
         public bool SphereBoxCollision(SimpleRigidbody3D me, BoxCollider other, out Vector3 point, out Vector3 normal)
         {
             Vector3 closePoint = other.ClosestPointOnBounds(me.tmpPosition);
-
-            //closePoint = new Vector3(me.tmpPosition.x, 0, me.tmpPosition.z);
+            
 
             float distance = Vector3.Distance(me.tmpPosition, closePoint);
             if (distance <= me.radius)
@@ -171,18 +169,9 @@ namespace SimpleUnityPhysics
 
                     velocity = newVelocity * time.friction + averageLostVelocity;
 
-
-
-                    //curForce = VectorRejection(curForce, collisionNormal);
-                    //other.curForce = VectorRejection(curForce, -collisionNormal);
-
+                    
                     other.velocity = otherNewVelocity * time.friction + averageLostVelocity;
-
-                    //intersectionNormals.Add(collisionNormal);
-                    //angularVelocity += Vector3.Cross(newVelocity.normalized, lostVelocity)* time.dt / time.itersPerFrame;
-                    //angularVelocity *= 0.99f;
-                    //velocity = newVelocity;
-
+                    
 
                     Vector3 moveOffset = collisionNormal * (radius - Vector3.Distance(collisionPoint, tmpPosition));
                     tmpPosition += moveOffset;
@@ -202,74 +191,13 @@ namespace SimpleUnityPhysics
 
 
                     velocity = newVelocity * time.friction;
-
-                    //intersectionNormals.Add(collisionNormal);
-                    //angularVelocity += Vector3.Cross(newVelocity.normalized, lostVelocity)* time.dt / time.itersPerFrame;
-                    //angularVelocity *= 0.99f;
-                    //velocity = newVelocity;
-
-
-                    //curForce = SimplePhysics.VectorAfterNormalForce(curForce, collisionNormal);
-
+                    
                     Vector3 moveOffset = collisionNormal * (radius - Vector3.Distance(collisionPoint, tmpPosition));
                     tmpPosition += moveOffset;
                 }
             }
 
             return fixedSomething;
-
-
-            /*
-
-
-
-            transform.GetComponent<Collider>().enabled = false;
-            float displacement = rootDist / iters;
-
-
-
-            for (int i = 0; i < collisionIters; i++)
-            {
-                Collider[] collisions = Physics.OverlapSphere(transform.position, radius);
-                if (collisions.Length != 0)
-                {
-                    float closestDist = float.MaxValue;
-                    Collider closest = collisions[0];
-                    foreach (Collider collision in collisions)
-                    {
-                        if (collision. < closestDist)
-                        {
-                            closestDist = collision.distance;
-                            closest = collision;
-                        }
-                    }
-
-                    //transform.position = (-new Vector3(collision.point.x, collision.point.y) + transform.position).normalized*displacement;
-                    // Get remaining velocity that is not in direction of normal
-                    velocity = VectorRejection(velocity, closest.normal);
-                    Vector3 moveOffset = closest.normal * (radius - Vector3.Distance(closest.point, transform.position));
-                    Debug.Log(closest.point);
-                    Debug.Log(Vector3.Distance(closest.point, transform.position));
-
-                    if (closest.collider.GetComponent<SimpleRigidbody3D>())
-                    {
-                        transform.position += moveOffset / 2.0f;
-                        closest.transform.position -= moveOffset / 2.0f;
-                    }
-                    else
-                    {
-                        transform.position -= moveOffset;
-                    }
-
-
-                }
-                else
-                {
-                }
-            }
-            transform.GetComponent<Collider>().enabled = true;
-
-            */
         }
 
         public int numDesiredPositions = 0;
@@ -289,55 +217,17 @@ namespace SimpleUnityPhysics
 
         public Vector3 curForce;
         public Vector3 newForce;
-
-        // Update is called once per frame
+        
         public void UpdateMe()
         {
-
-
-
-
-
-            //velocity = new Vector3(velocity.x, velocity.y - gravity * time.dt, velocity.z);
-
-
             for (int i = 0; i < time.itersPerFrame; i++)
             {
                 float displacement = time.dt / time.itersPerFrame;
-                //tmpPosition += velocity * displacement;
 
                 velocity += curForce * displacement;
                 tmpPosition += velocity * displacement;
-                //tmpPosition += velocity * displacement + 0.5f * curForce * displacement * displacement;
 
                 FixCollisions();
-                //angularVelocity *= 0.999f;
-
-                /*
-                if (angularVelocity.magnitude > 0.008f)
-                {
-                //    angularVelocity = angularVelocity.normalized * 0.008f;
-                }
-                // Apply rotation
-                // From http://stackoverflow.com/questions/12053895/converting-angular-velocity-to-quaternion-in-opencv
-
-                float angle = angularVelocity.magnitude* displacement;
-                if (angle > 0.0f)
-                {
-                    float qx = angularVelocity.x * Mathf.Sin(angle / 2.0f) / angle;
-                    float qy = angularVelocity.y * Mathf.Sin(angle / 2.0f) / angle;
-                    float qz = angularVelocity.z * Mathf.Sin(angle / 2.0f) / angle;
-                    float qw = Mathf.Cos(angle / 2.0f);
-                    Vector4 resultQuat = new Vector4(qx, qy, qz, qw);
-                    resultQuat = resultQuat.normalized;
-                    Quaternion result = tmpRotation * new Quaternion(resultQuat.x, resultQuat.y, resultQuat.z, resultQuat.w);
-                    Vector4 normalizedResult = (new Vector4(result.x, result.y, result.z, result.w)).normalized;
-                    //tmpRotation = new Quaternion(normalizedResult.x, normalizedResult.y, normalizedResult.z, normalizedResult.w);
-                }
-                */
-
-
-                //transform.localEulerAngles = new Vector3(0, 0, transform.localEulerAngles.z + angularVelocity * displacement);
             }
 
         }

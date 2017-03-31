@@ -23,7 +23,7 @@ namespace SimpleUnityPhysics
         }
 
         bool added = false;
-        // Use this for initialization
+
         public void Start()
         {
             if (autoCalculateRadius)
@@ -38,7 +38,6 @@ namespace SimpleUnityPhysics
         float moveDist = 1.0f;
 
 
-        // Update is called once per frame
         void UpdateMe()
         {
             for (int i = 0; i < time.jointIters; i++)
@@ -72,11 +71,7 @@ namespace SimpleUnityPhysics
 
                     otherFar.FixCollisions();
                     myRigidbody.FixCollisions();
-
-
-                    //otherClose.angularVelocity = angularVelocityScale * Vector3.Cross(-(otherClose.position - myRigidbody.position), myRigidbody.VectorRejection(new Vector3(0, -myRigidbody.gravity), -(otherClose.position - myRigidbody.position))).z;
-                    //myRigidbody.angularVelocity = angularVelocityScale* Vector3.Cross(-(otherClose.position - myRigidbody.position), -myRigidbody.VectorRejection(new Vector3(0, -otherClose.gravity), -(otherClose.position - myRigidbody.position).normalized)).z;
-
+                    
 
                     Vector3 otherVelInDir = SimpleRigidbody3D.VectorProjection(myRigidbody.velocity, (otherFar.tmpPosition - myRigidbody.tmpPosition).normalized);
                     Vector3 myVelInDir = SimpleRigidbody3D.VectorProjection(otherFar.velocity, (otherFar.tmpPosition - myRigidbody.tmpPosition).normalized);
@@ -84,12 +79,7 @@ namespace SimpleUnityPhysics
                     Vector3 avgVelInDir = (otherVelInDir + myVelInDir) / 2.0f;
                     myRigidbody.velocity = myRigidbody.velocity - otherVelInDir + avgVelInDir;
                     otherFar.velocity = otherFar.velocity - myVelInDir + avgVelInDir;
-
-
-                    //Vector2 avgVelocity = (otherClose.velocity + other.velocity) / 2.0f;
-
-                    //otherClose.velocity = avgVelocity;
-                    //other.velocity = avgVelocity;
+                    
                 }
 
                 if (!retry)

@@ -5,7 +5,6 @@ namespace SimpleUnityPhysics
     public class SimpleRigidbody2D : MonoBehaviour
     {
 
-        // Use this for initialization
         void Start()
         {
             radius = GetComponent<CircleCollider2D>().radius;
@@ -56,8 +55,7 @@ namespace SimpleUnityPhysics
                             closest = collision;
                         }
                     }
-
-                    //transform.position = (-new Vector3(collision.point.x, collision.point.y) + transform.position).normalized*displacement;
+                    
                     // Get remaining velocity that is not in direction of normal
                     velocity = VectorRejection(velocity, closest.normal);
                     Vector3 moveOffset = new Vector3(closest.normal.x, closest.normal.y).normalized * (radius - Vector2.Distance(closest.point, transform.position));
@@ -81,8 +79,7 @@ namespace SimpleUnityPhysics
             transform.GetComponent<Collider2D>().enabled = true;
         }
 
-
-        // Update is called once per frame
+        
         void FixedUpdate()
         {
             velocity = new Vector3(velocity.x, velocity.y - gravity * rootDist, 0);

@@ -12,8 +12,7 @@ namespace SimpleUnityPhysics
         public bool autoCalculateRadius = true;
         public float radius = 1.0f;
         public float moveDist = 1f;
-
-        // Use this for initialization
+        
         void Start()
         {
             myRigidbody = GetComponent<SimpleRigidbody2D>();
@@ -27,7 +26,6 @@ namespace SimpleUnityPhysics
         public int iters = 10;
 
 
-        // Update is called once per frame
         void FixedUpdate()
         {
             radius = Mathf.Max(0, radius);
@@ -63,9 +61,6 @@ namespace SimpleUnityPhysics
                     other.FixCollisions();
 
 
-                    //myRigidbody.angularVelocity = angularVelocityScale * Vector3.Cross(-(myRigidbody.position - other.position), other.VectorRejection(new Vector3(0, -other.gravity), -(myRigidbody.position - other.position))).z;
-                    //other.angularVelocity = angularVelocityScale* Vector3.Cross(-(myRigidbody.position - other.position), -other.VectorRejection(new Vector3(0, -myRigidbody.gravity), -(myRigidbody.position - other.position).normalized)).z;
-
 
                     Vector3 otherVelInDir = other.VectorProjection(other.velocity, (myRigidbody.position - other.position).normalized);
                     Vector3 myVelInDir = other.VectorProjection(myRigidbody.velocity, (myRigidbody.position - other.position).normalized);
@@ -73,16 +68,7 @@ namespace SimpleUnityPhysics
                     Vector3 avgVelInDir = (otherVelInDir + myVelInDir) / 2.0f;
                     other.velocity = other.velocity - otherVelInDir + avgVelInDir;
                     myRigidbody.velocity = myRigidbody.velocity - myVelInDir + avgVelInDir;
-
-
-                    //Vector2 avgVelocity = (myRigidbody.velocity + other.velocity) / 2.0f;
-
-                    //myRigidbody.velocity = avgVelocity;
-                    //other.velocity = avgVelocity;
                 }
-
-
-
             }
         }
     }

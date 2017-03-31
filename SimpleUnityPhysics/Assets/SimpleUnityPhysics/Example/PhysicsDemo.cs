@@ -6,7 +6,7 @@ using SimpleUnityPhysics;
 public class PhysicsDemo : MonoBehaviour {
 
     public SimplePhysics physics;
-	// Use this for initialization
+
 	void Start ()
     {
         timeAtLastUpdate = Time.time;
@@ -14,7 +14,7 @@ public class PhysicsDemo : MonoBehaviour {
 
 
     float timeAtLastUpdate;
-	// Update is called once per frame
+
 	void Update () {
         if (Time.time - timeAtLastUpdate >= physics.dt)
         {

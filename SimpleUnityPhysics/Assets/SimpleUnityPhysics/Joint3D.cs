@@ -25,13 +25,11 @@ namespace SimpleUnityPhysics
             me = GetComponent<SimpleRigidbody3D>();
         }
 
-        // Use this for initialization
         void Start()
         {
 
         }
 
-        // Update is called once per frame
         void Update()
         {
 

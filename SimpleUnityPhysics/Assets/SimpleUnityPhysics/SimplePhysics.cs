@@ -43,8 +43,7 @@ namespace SimpleUnityPhysics
 
 
         public System.Random randomGen;
-
-        // Use this for initialization
+        
         void Start()
         {
             actualObjects = FindObjectsOfType<SimpleRigidbody3D>();
@@ -335,8 +334,7 @@ namespace SimpleUnityPhysics
 
 
         public float curTime = 0.0f;
-
-        // Update is called once per frame  
+        
 
         public void ResetSimulation()
         {
