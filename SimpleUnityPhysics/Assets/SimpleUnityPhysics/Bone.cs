@@ -5,20 +5,16 @@ namespace SimpleUnityPhysics
 {
     public class Bone : MonoBehaviour
     {
-        public bool creatureUsingMe = false;
         public SimpleRigidbody3D other;
 
         [HideInInspector]
         public SimpleRigidbody3D myRigidbody;
 
-        SimplePhysics time;
-
-        bool added = false;
+        public bool render = true;
 
 
         public void Awake()
         {
-            time = FindObjectOfType<SimplePhysics>();
             myRigidbody = GetComponent<SimpleRigidbody3D>();
             initialDistance = Vector3.Distance(myRigidbody.transform.position, other.transform.position);
         }
@@ -26,20 +22,19 @@ namespace SimpleUnityPhysics
         [HideInInspector]
         public float initialDistance = 0.0f;
 
+        [HideInInspector]
         public float prevDistance;
+
+        [HideInInspector]
         public float distance;
         
         public void Start()
         {
             distance = initialDistance;
             prevDistance = distance;
-            if (!added) { time.AddMeToTickHandler(this, UpdateMe); added = true; }
         }
         
-        void UpdateMe()
-        {
 
-        }
         static Material lineMaterial;
         static void CreateLineMaterial()
         {
@@ -62,6 +57,10 @@ namespace SimpleUnityPhysics
         // Will be called after all regular rendering is done
         public void OnRenderObject()
         {
+            if (!render)
+            {
+                return;
+            }
             CreateLineMaterial();
             // Apply the line material
             lineMaterial.SetPass(0);

@@ -6,39 +6,41 @@ namespace SimpleUnityPhysics
 {
     public class SimpleRigidbody3D : MonoBehaviour
     {
-
-
+        [HideInInspector]
         SimplePhysics time;
-
-        bool added = false;
-
-        public int index;
-
+        [HideInInspector]
         List<SimpleRigidbody3D> otherColliders;
+        [HideInInspector]
         List<BoxCollider> staticColliders;
-
+        [HideInInspector]
         public Vector3 initialPosition;
-
+        [HideInInspector]
+        public float tmpX, tmpY, tmpZ;
 
 
         public void Awake()
         {
-            hitNormals = new List<Vector3>();
             initialPosition = transform.position;
-            tmpPosition = transform.position;
+            tmpX = transform.position.x;
+            tmpY = transform.position.y;
+            tmpZ = transform.position.z;
 
             Collider[] otherThings = FindObjectsOfType<Collider>();
             otherColliders = new List<SimpleRigidbody3D>();
             staticColliders = new List<BoxCollider>();
 
+            foreach (SimpleRigidbody3D rigi in FindObjectsOfType<SimpleRigidbody3D>())
+            {
+                if (rigi == this)
+                {
+                    continue;
+                }
+                otherColliders.Add(rigi);
+            }
+
             for (int i = 0; i < otherThings.Length; i++)
             {
-                SimpleRigidbody3D rigid = otherThings[i].GetComponent<SimpleRigidbody3D>();
-                if (rigid != null && rigid != this)
-                {
-                    otherColliders.Add(rigid);
-                }
-                else if (otherThings[i].GetComponent<BoxCollider>() != null)
+                if (otherThings[i].GetComponent<BoxCollider>() != null)
                 {
                     staticColliders.Add(otherThings[i].GetComponent<BoxCollider>());
                 }
@@ -50,189 +52,278 @@ namespace SimpleUnityPhysics
 
         }
 
-
+        [HideInInspector]
         public float[] distances;
-        
-        public void Start()
-        {
-            if (!added) { time.AddMeToTickHandler(this, UpdateMe); added = true; }
-        }
 
+        [HideInInspector]
         public HashSet<SimpleRigidbody3D> connectedComponent;
 
-        public Vector3 tmpPosition;
+        [HideInInspector]
+        public float velocityX, velocityY, velocityZ;
 
-
-        public Vector3 velocity;
         [HideInInspector]
         public float radius = 1.0f;
 
-        public List<Vector3> intersectionNormals = new List<Vector3>();
         // See https://en.wikipedia.org/wiki/Vector_projection
-        public static Vector3 VectorProjection(Vector3 a, Vector3 b)
+
+        public static void Normalize(float x, float y, float z, out float nx, out float ny, out float nz)
         {
-            return b * Vector3.Dot(a, b.normalized);
+            float mag = x * x + y * y + z * z;
+            if (mag == 0)
+            {
+                nx = x;
+                ny = y;
+                nz = z;
+            }
+            else
+            {
+                mag = Mathf.Sqrt(mag);
+                nx = x / mag;
+                ny = y / mag;
+                nz = z / mag;
+            }
         }
 
-        public static Vector3 VectorRejection(Vector3 a, Vector3 b)
+        public static void VectorProjection(float ax, float ay, float az, float bx, float by, float bz, out float x, out float y, out float z)
         {
-            return a - VectorProjection(a, b);
+            float nx, ny, nz;
+            Normalize(bx, by, bz, out nx, out ny, out nz);
+            float dot = ax * nx + ay * ny + az * nz;
+            x = bx * dot;
+            y = by * dot;
+            z = bz * dot;
         }
 
-        public int collisionIters = 10;
+        public static void VectorRejection(float ax, float ay, float az, float bx, float by, float bz, out float x, out float y, out float z)
+        {
+            float nx, ny, nz;
+            Normalize(bx, by, bz, out nx, out ny, out nz);
+            float dot = ax * nx + ay * ny + az * nz;
+            x = ax - bx * dot;
+            y = ay - by * dot;
+            z = az - bz * dot;
+        }
 
         // Accessing zero is slow for some reason?
-        public Vector3 zeroThing = new Vector3(0, 0, 0);
 
-        public bool SphereSphereCollision(SimpleRigidbody3D me, SimpleRigidbody3D other, out Vector3 point, out Vector3 normal)
+        public bool SphereSphereCollision(SimpleRigidbody3D me, SimpleRigidbody3D other, out float pointX, out float pointY, out float pointZ, out float normalX, out float normalY, out float normalZ)
         {
             // Accessing properties of compoments are slow
             float myRadius = me.radius;
             float otherRadius = other.radius;
-            // I need to do this because for some reason unity Vector3.Distance is slow
-            float dx = me.tmpPosition.x - other.tmpPosition.x;
-            float dy = me.tmpPosition.y - other.tmpPosition.y;
-            float dz = me.tmpPosition.z - other.tmpPosition.z;
+            // I need to do this because for some reason unity Vector3f.Distance is slow
+            float dx = me.tmpX - other.tmpX;
+            float dy = me.tmpY - other.tmpY;
+            float dz = me.tmpZ - other.tmpZ;
             float distance = Mathf.Sqrt(dx * dx + dy * dy + dz * dz);
+
+            float nx, ny, nz;
+            Normalize(1, 1, 1, out nx, out ny, out nz);
+
             if (distance <= myRadius + otherRadius)
             {
                 if (distance == 0.0f)
                 {
-                    // If they are equal, do a pertubation
-                    // This is typically random, but I don't have it be random so the results are deterministic
-                    point = me.tmpPosition + Vector3.one.normalized / me.radius / 10.0f;
-                    normal = (me.tmpPosition - point).normalized;
+                    pointX = me.tmpX + nx / me.radius / 10.0f;
+                    pointY = me.tmpY + ny / me.radius / 10.0f;
+                    pointZ = me.tmpZ + nz / me.radius / 10.0f;
+
+                    float tmpNormalX = me.tmpX - pointX;
+                    float tmpNormalY = me.tmpY - pointY;
+                    float tmpNormalZ = me.tmpZ - pointZ;
+
+                    Normalize(tmpNormalX, tmpNormalY, tmpNormalZ, out normalX, out normalY, out normalZ);
                 }
                 else
                 {
-                    point = (me.tmpPosition * myRadius + other.tmpPosition * otherRadius) / (myRadius + otherRadius);
-                    normal = (me.tmpPosition - point).normalized;
+                    pointX = (me.tmpX * myRadius + other.tmpX * otherRadius) / (myRadius + otherRadius);
+                    pointY = (me.tmpY * myRadius + other.tmpY * otherRadius) / (myRadius + otherRadius);
+                    pointZ = (me.tmpZ * myRadius + other.tmpZ * otherRadius) / (myRadius + otherRadius);
+
+                    float tmpNormalX = me.tmpX - pointX;
+                    float tmpNormalY = me.tmpY - pointY;
+                    float tmpNormalZ = me.tmpZ - pointZ;
+
+                    Normalize(tmpNormalX, tmpNormalY, tmpNormalZ, out normalX, out normalY, out normalZ);
                 }
                 return true;
             }
             else
             {
-                point = zeroThing;
-                normal = zeroThing;
+                pointX = 0; pointY = 0; pointZ = 0;
+                normalX = 0; normalY = 0; normalZ = 0;
                 return false;
             }
         }
 
-        public bool SphereBoxCollision(SimpleRigidbody3D me, BoxCollider other, out Vector3 point, out Vector3 normal)
+        public bool SphereBoxCollision(SimpleRigidbody3D me, BoxCollider other, out float pointX, out float pointY, out float pointZ, out float normalX, out float normalY, out float normalZ)
         {
-            Vector3 closePoint = other.ClosestPointOnBounds(me.tmpPosition);
-            
+            Vector3 closePoint = other.ClosestPointOnBounds(new Vector3(me.tmpX, me.tmpY, me.tmpZ));
 
-            float distance = Vector3.Distance(me.tmpPosition, closePoint);
+            float dx = me.tmpX - closePoint.x;
+            float dy = me.tmpY - closePoint.y;
+            float dz = me.tmpZ - closePoint.z;
+            float distance = Mathf.Sqrt(dx * dx + dy * dy + dz * dz);
             if (distance <= me.radius)
             {
+
+                float nx, ny, nz;
+                Normalize(1, 1, 1, out nx, out ny, out nz);
+
                 if (distance == 0.0f)
                 {
-                    point = me.tmpPosition + Vector3.one.normalized / me.radius / 10.0f;
-                    normal = (me.tmpPosition - point).normalized;
+
+                    pointX = me.tmpX + nx / me.radius / 10.0f;
+                    pointY = me.tmpY + ny / me.radius / 10.0f;
+                    pointZ = me.tmpZ + nz / me.radius / 10.0f;
+
+                    float tmpNormalX = me.tmpX - pointX;
+                    float tmpNormalY = me.tmpY - pointY;
+                    float tmpNormalZ = me.tmpZ - pointZ;
+
+                    Normalize(tmpNormalX, tmpNormalY, tmpNormalZ, out normalX, out normalY, out normalZ);
                 }
                 else
                 {
-                    point = closePoint;
-                    normal = (me.tmpPosition - closePoint).normalized;
+                    pointX = closePoint.x;
+                    pointY = closePoint.y;
+                    pointZ = closePoint.z;
+
+                    float tmpNormalX = me.tmpX - pointX;
+                    float tmpNormalY = me.tmpY - pointY;
+                    float tmpNormalZ = me.tmpZ - pointZ;
+
+                    Normalize(tmpNormalX, tmpNormalY, tmpNormalZ, out normalX, out normalY, out normalZ);
                 }
                 return true;
             }
             else
             {
-                point = zeroThing;
-                normal = zeroThing;
+                pointX = 0; pointY = 0; pointZ = 0;
+                normalX = 0; normalY = 0; normalZ = 0;
                 return false;
             }
         }
-
-        public List<SimpleRigidbody3D> connectedComponentVisi;
-
-        public List<Vector3> hitNormals = new List<Vector3>();
 
         public bool FixCollisions()
         {
             bool fixedSomething = false;
-            foreach (SimpleRigidbody3D other in otherColliders)
+            for (int i = 0; i < otherColliders.Count; i++)
             {
-                Vector3 collisionPoint;
-                Vector3 collisionNormal;
-                if (SphereSphereCollision(this, other, out collisionPoint, out collisionNormal))
+                SimpleRigidbody3D other = otherColliders[i];
+                float colX, colY, colZ;
+                float normX, normY, normZ;
+                
+                if (SphereSphereCollision(this, other, out colX, out colY, out colZ, out normX, out normY, out normZ))
                 {
                     fixedSomething = true;
-                    Vector3 newVelocity = SimplePhysics.VectorAfterNormalForce(velocity, collisionNormal);
-                    Vector3 lostVelocity = velocity - newVelocity;
-                    Vector3 otherNewVelocity = SimplePhysics.VectorAfterNormalForce(other.velocity, -collisionNormal);
-                    Vector3 otherLostVelocity = other.velocity - otherNewVelocity;
 
-                    Vector3 averageLostVelocity = (lostVelocity + otherLostVelocity) / 2.0f;
+                    float newVelX, newVelY, newVelZ;
+                    SimplePhysics.VectorAfterNormalForce(velocityX, velocityY, velocityZ, normX, normY, normZ, out newVelX, out newVelY, out newVelZ);
+                    float lostVelX = velocityX - newVelX;
+                    float lostVelY = velocityY - newVelY;
+                    float lostVelZ = velocityZ - newVelZ;
 
-                    velocity = newVelocity * time.friction + averageLostVelocity;
+                    float otherNewVelX, otherNewVelY, otherNewVelZ;
+                    SimplePhysics.VectorAfterNormalForce(other.velocityX, other.velocityY, other.velocityZ, -normX, -normY, -normZ, out otherNewVelX, out otherNewVelY, out otherNewVelZ);
+                    float otherLostVelX = other.velocityX - otherNewVelX;
+                    float otherLostVelY = other.velocityY - otherNewVelY;
+                    float otherLostVelZ = other.velocityZ - otherNewVelZ;
 
-                    
-                    other.velocity = otherNewVelocity * time.friction + averageLostVelocity;
-                    
+                    float avgLostVelX = (lostVelX + otherLostVelX) / 2.0f;
+                    float avgLostVelY = (lostVelY + otherLostVelY) / 2.0f;
+                    float avgLostVelZ = (lostVelZ + otherLostVelZ) / 2.0f;
 
-                    Vector3 moveOffset = collisionNormal * (radius - Vector3.Distance(collisionPoint, tmpPosition));
-                    tmpPosition += moveOffset;
-                    other.tmpPosition -= moveOffset;
+                    velocityX = newVelX * time.friction + avgLostVelX;
+                    velocityY = newVelY * time.friction + avgLostVelY;
+                    velocityZ = newVelZ * time.friction + avgLostVelZ;
+
+                    other.velocityX = otherNewVelX * time.friction + avgLostVelX;
+                    other.velocityY = otherNewVelY * time.friction + avgLostVelY;
+                    other.velocityZ = otherNewVelZ * time.friction + avgLostVelZ;
+
+                    float dx = colX - tmpX;
+                    float dy = colY - tmpY;
+                    float dz = colZ - tmpZ;
+                    float dist = Mathf.Sqrt(dx * dx + dy * dy + dz * dz);
+
+
+                    float moveOffsetX = normX * (radius - dist);
+                    float moveOffsetY = normY * (radius - dist);
+                    float moveOffsetZ = normZ * (radius - dist);
+
+                    tmpX += moveOffsetX;
+                    tmpY += moveOffsetY;
+                    tmpZ += moveOffsetZ;
+
+                    other.tmpX -= moveOffsetX;
+                    other.tmpY -= moveOffsetY;
+                    other.tmpZ -= moveOffsetZ;
                 }
             }
 
-
-            foreach (BoxCollider other in staticColliders)
+            for (int i = 0; i < staticColliders.Count; i++)
             {
-                Vector3 collisionPoint;
-                Vector3 collisionNormal;
-                if (SphereBoxCollision(this, other, out collisionPoint, out collisionNormal))
+                BoxCollider other = staticColliders[i];
+                float colX, colY, colZ;
+                float normX, normY, normZ;
+
+                if (SphereBoxCollision(this, other, out colX, out colY, out colZ, out normX, out normY, out normZ))
                 {
                     fixedSomething = true;
-                    Vector3 newVelocity = SimplePhysics.VectorAfterNormalForce(velocity, collisionNormal);
+
+                    float newVelX, newVelY, newVelZ;
+                    SimplePhysics.VectorAfterNormalForce(velocityX, velocityY, velocityZ, normX, normY, normZ, out newVelX, out newVelY, out newVelZ);
+                    velocityX = newVelX * time.friction;
+                    velocityY = newVelY * time.friction;
+                    velocityZ = newVelZ * time.friction;
 
 
-                    velocity = newVelocity * time.friction;
-                    
-                    Vector3 moveOffset = collisionNormal * (radius - Vector3.Distance(collisionPoint, tmpPosition));
-                    tmpPosition += moveOffset;
+                    float dx = colX - tmpX;
+                    float dy = colY - tmpY;
+                    float dz = colZ - tmpZ;
+                    float dist = Mathf.Sqrt(dx * dx + dy * dy + dz * dz);
+
+                    float moveOffsetX = normX * (radius - dist);
+                    float moveOffsetY = normY * (radius - dist);
+                    float moveOffsetZ = normZ * (radius - dist);
+
+                    tmpX += moveOffsetX;
+                    tmpY += moveOffsetY;
+                    tmpZ += moveOffsetZ;
                 }
             }
 
             return fixedSomething;
         }
 
-        public int numDesiredPositions = 0;
-        public Vector3 desiredPosition;
-
-
         public void ResetMe()
         {
-            velocity = Vector3.zero;
-            curForce = Vector3.zero;
-            intersectionNormals = new List<Vector3>();
-            hitNormals = new List<Vector3>();
+            velocityX = velocityY = velocityZ = 0;
         }
-
-
-        Collider[] colliders;
-
-        public Vector3 curForce;
-        public Vector3 newForce;
         
         public void UpdateMe()
         {
             for (int i = 0; i < time.itersPerFrame; i++)
             {
-                float displacement = time.dt / time.itersPerFrame;
+                float dt = time.dt / time.itersPerFrame;
 
-                velocity += curForce * displacement;
-                tmpPosition += velocity * displacement;
+                float accelerationX = time.gravity.x;
+                float accelerationY = time.gravity.y;
+                float accelerationZ = time.gravity.z;
+
+
+                tmpX += velocityX * dt + 0.5f * accelerationX * dt * dt;
+                tmpY += velocityY * dt + 0.5f * accelerationY * dt * dt;
+                tmpZ += velocityZ * dt + 0.5f * accelerationZ * dt * dt;
+
+                velocityX += accelerationX * dt;
+                velocityY += accelerationY * dt;
+                velocityZ += accelerationZ * dt;
 
                 FixCollisions();
             }
 
         }
-
-        [HideInInspector]
-        public int id;
     }
 }

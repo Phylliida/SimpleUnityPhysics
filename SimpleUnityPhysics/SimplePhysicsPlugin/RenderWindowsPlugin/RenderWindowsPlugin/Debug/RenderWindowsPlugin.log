@@ -1,0 +1,7 @@
+﻿  TestCPPLibrary.cpp
+c:\users\danielle\desktop\dani\programming\unity\renderwindowsplugin\renderwindowsplugin\renderwindowsplugin\testcpplibrary.cpp(8): warning C4273: 'TestMultiply': inconsistent dll linkage
+  c:\users\danielle\desktop\dani\programming\unity\renderwindowsplugin\renderwindowsplugin\renderwindowsplugin\testcpplibrary.h(10): note: see previous definition of 'TestMultiply'
+c:\users\danielle\desktop\dani\programming\unity\renderwindowsplugin\renderwindowsplugin\renderwindowsplugin\testcpplibrary.cpp(13): warning C4273: 'TestDivide': inconsistent dll linkage
+  c:\users\danielle\desktop\dani\programming\unity\renderwindowsplugin\renderwindowsplugin\renderwindowsplugin\testcpplibrary.h(11): note: see previous definition of 'TestDivide'
+     Creating library C:\Users\Danielle\Desktop\Dani\Programming\Unity\RenderWindowsPlugin\RenderWindowsCS\WindowRenderCS\Debug\RenderWindowsPlugin.lib and object C:\Users\Danielle\Desktop\Dani\Programming\Unity\RenderWindowsPlugin\RenderWindowsCS\WindowRenderCS\Debug\RenderWindowsPlugin.exp
+  RenderWindowsPlugin.vcxproj -> C:\Users\Danielle\Desktop\Dani\Programming\Unity\RenderWindowsPlugin\RenderWindowsCS\WindowRenderCS\Debug\RenderWindowsPlugin.dll
